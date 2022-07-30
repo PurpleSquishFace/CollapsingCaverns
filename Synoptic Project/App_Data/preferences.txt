@@ -1,0 +1,5 @@
+{
+  "PlayerName": "Adventurer",
+  "Map_Size": 5,
+  "Difficulty": 1
+}

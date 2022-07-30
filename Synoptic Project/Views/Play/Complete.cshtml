@@ -1,0 +1,50 @@
+﻿
+@{
+    ViewBag.Title = "You Escaped!";
+}
+    <div class="mazePage" style="background-color: #4a4b50;">
+
+        <div class="centerElement display">
+            <div class="row">
+                <div class="col">
+                    <h1><b>You Escaped, @ViewBag.Player.Name!</b></h1>
+                </div>
+            </div>
+            <div class="row row-list ">
+                <div class="col" align="center">
+                    <span class="health">Health: @ViewBag.Player.Health</span>
+                </div>
+            </div>
+            <div class="row row-list">
+                <div class="col" align="center">
+                    <span class="gold">Gold: @ViewBag.Player.Gold.Value</span>
+                </div>
+            </div>
+            <div class="row row-list">
+                <div class="col" align="center">
+                    <span class="silver">Silver: @ViewBag.Player.Silver.Value</span>
+                </div>
+            </div>
+            <div class="row row-list">
+                <div class="col" align="center">
+                    <span class="bronze">Bronze: @ViewBag.Player.Bronze.Value</span>
+                </div>
+            </div>
+            <div class="row row-list">
+                <div class="col" align="center">
+                    <button id="btn-home" class="btn shake-slow shake-freeze">Home</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+@section scripts {
+<script>
+
+    $('#btn-home').click(function(){
+        window.location = '/Home/Index';
+    });
+
+</script>
+}

@@ -1,0 +1,335 @@
+﻿
+@{
+    ViewBag.Title = "Maze";
+}
+
+<div class="mazePage" style="background-color: #4a4b50;">
+
+    <div class="sticky-top container top-bar" style="min-height:4em; padding-left:0;">
+        <div class="stats">
+            <span class="health">Health: 0</span>
+            <span class="gold">Gold: 0</span>
+            <span class="silver">Silver: 0</span>
+            <span class="bronze">Bronze: 0</span>
+        </div>
+    </div>
+
+    <div class="container" style="min-height: calc(100vh - 4em); width: 100vw; text-align: center;">
+        <div class="row" style="min-height: 60px;">
+            <div class="col-5" style="padding: 0;">
+                <button id="btn-coin" class="btn shake-slow shake-freeze"> Drop Coin</button>
+            </div>
+            <div class="col-2" style="padding:0">
+                <button id="btn-north" direction="north" class="btn shake-slow shake-freeze btn-move" display:none">North</button>
+            </div>
+            <div class="col-5" style="padding:0">
+                <button id="btn-treasure" class="btn shake-slow shake-freeze" display:none">Treasure</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-2" style="line-height: 700px;padding:0;" align="right">
+                <button id="btn-west" direction="west" class="btn shake-slow shake-freeze btn-move" display:none">West</button>
+            </div>
+            <div class="col-8" style="padding: 0;">
+                <canvas id="chamber" width="950" height="700"></canvas>
+            </div>
+            <div class="col-2" style="line-height: 700px;padding:0;" align="left">
+                <button id="btn-east" direction="east" class="btn shake-slow shake-freeze btn-move" display:none">East</button>
+            </div>
+        </div>
+
+        <div class="row" style="min-height: 60px;">
+            <div class="col" style="padding: 0;"></div>
+            <div class="col-1" style="padding:0">
+                <button id="btn-south" direction="south" class="btn shake-slow shake-freeze btn-move" display:none">South</button>
+            </div>
+            <div class="col" style="padding:0"></div>
+        </div>
+    </div>
+</div>
+
+<div id="treasureModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content treasure-modal">
+            <div id="treasure"></div>
+            <button id="btn-loot" class="btn shake-slow shake-freeze loot-btn">Loot!</button>
+        </div>
+    </div>
+</div>
+
+<div id="threatModal" direction="" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" strength="">
+            <div class="row bottom">
+                <div class="col">
+                    <button id="btn-lure" class="btn shake-slow shake-freeze">Lure!</button>
+                </div>
+                <div class="col">
+                    <button id="btn-fight" class="btn shake-slow shake-freeze"> Fight!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<img id="stonefloor" src="~/Content/Images/StoneFloor.jpg" style="display:none;" />
+<img id="woodchest" src="~/Content/Images/Chest.jpg" style="display:none;" />
+<img id="coin" src="~/Content/Images/Coin.png" style="display:none;" />
+<canvas id="temp" width="1000" height="750" style="display:none;"></canvas>
+
+
+@section scripts{
+    <script>
+
+        var c, context, width, height, pad, x, y;
+        var tempc, tempContext;
+        var threat;
+
+        $('.btn-move').click(function () {
+            var direction = $(this).attr('direction');
+
+            if (threat) {
+                $('#btn-lure').removeClass('blocked');
+                $('#threatModal').modal('show');
+                $('#threatModal').attr('direction', direction);
+                return;
+            }
+
+            var url = '/Play/Move?x=' + x + '&y=' + y + '&direction=' + direction;
+            GetRoomData(url);
+        });
+
+        $(document).ready(function () {
+
+            c = document.getElementById('chamber');
+            context = c.getContext('2d');
+            width = c.width;
+            height = c.height;
+            pad = 20;
+            tempc = document.getElementById('temp');
+            tempContext = tempc.getContext('2d');
+
+            var url = '/Play/RoomData';
+            GetRoomData(url);
+        });
+
+        function GetRoomData(url) {
+            $.ajax({
+                url: url,
+                success: function (d) {
+                    if (d.complete) {
+                        window.location = '/Play/Complete';
+                        return;
+                    }
+                    x = d.x;
+                    y = d.y;
+
+                    DrawRoom(d.north, d.east, d.south, d.west, d.entities);
+                    SetTreasureChest(d.entities);
+                    SetThreat(d.entities);
+                    SetPlayerStats(d.player);
+                }
+            });
+        }
+
+        function DrawRoom(north, east, south, west, entities) {
+
+            context.clearRect(0, 0, width, height);
+
+            var floor = document.getElementById('stonefloor');
+            context.drawImage(floor, 0, 0, width, height);
+            context.fillStyle = '#4a4b50';
+            var wHalf = width / 2;
+            var hHalf = height / 2;
+
+            if (north) {
+                context.clearRect(0, 0, wHalf - 125, pad);
+                context.clearRect(wHalf + 125, 0, wHalf - 125, pad);
+                Line(pad, pad, wHalf - 125, pad);
+                Line(wHalf - 125, 0, wHalf - 125, pad);
+                Line(wHalf + 125, pad, width - pad, pad);
+                Line(wHalf + 125, 0, wHalf + 125, pad);
+                $('#btn-north').css('display', 'inline-block');
+            } else {
+                context.clearRect(0, 0, width, pad);
+                Line(pad, pad, width - pad, pad);
+                $('#btn-north').css('display', 'none');
+            }
+
+            if (east) {
+                context.clearRect(width - pad, 0, pad, hHalf - 125);
+                context.clearRect(width - pad, hHalf + 125, pad, hHalf - 125);
+
+                Line(width - pad, pad, width - pad, hHalf - 125);
+                Line(width - pad, hHalf - 125, width, hHalf - 125);
+                Line(width - pad, hHalf + 125, width - pad, height - pad);
+                Line(width - pad, hHalf + 125, width, hHalf + 125);
+                $('#btn-east').css('display', 'inline-block');
+            } else {
+                context.clearRect(width - pad, 0, pad, height);
+                Line(width - pad, pad, width - pad, height - pad);
+                $('#btn-east').css('display', 'none');
+            }
+
+            if (south) {
+                context.clearRect(0, height - pad, wHalf - 125, pad);
+                context.clearRect(wHalf + 125, height - pad, wHalf - 125, pad);
+                Line(pad, height - pad, wHalf - 125, height - pad);
+                Line(wHalf - 125, height - pad, wHalf - 125, height);
+                Line(wHalf + 125, height - pad, width - pad, height - pad);
+                Line(wHalf + 125, height - pad, wHalf + 125, height);
+                $('#btn-south').css('display', 'inline-block');
+            } else {
+                context.clearRect(0, height - pad, width, pad);
+                Line(pad, height - pad, width - pad, height - pad);
+                $('#btn-south').css('display', 'none');
+            }
+
+            if (west) {
+                context.clearRect(0, 0, pad, hHalf - 125);
+                context.clearRect(0, hHalf + 125, pad, hHalf - 125);
+                Line(pad, pad, pad, hHalf - 125);
+                Line(0, hHalf - 125, pad, hHalf - 125);
+                Line(pad, hHalf + 125, pad, height - pad);
+                Line(0, hHalf + 125, pad, hHalf + 125);
+                $('#btn-west').css('display', 'inline-block');
+            } else {
+                context.clearRect(0, 0, pad, height);
+                Line(pad, pad, pad, height - pad);
+                $('#btn-west').css('display', 'none');
+            }
+
+            $('#btn-treasure').css('display', 'none');
+            var treasureCheck = false;
+            for (var i = 0; i < entities.length; i++) {
+                if (entities[i].Type == 0) treasureCheck = true;
+            }
+
+            if (treasureCheck) {
+                var wood = document.getElementById("woodchest");
+                context.drawImage(wood, width - (width * 0.25), pad * 3, pad * 8, pad * 5);
+                context.rect(width - (width * 0.25), pad * 3, pad * 8, pad * 5);
+                context.stroke();
+                $('#btn-treasure').css('display', 'inline-block');
+            }
+
+
+            for (var i = 0; i < entities[0].Amount; i++) {
+                var coin = document.getElementById("coin");
+                context.drawImage(coin, (pad * 2) + (pad * i), height - (pad * 4), pad * 2, pad * 2);
+            }            
+        }
+
+        function Line(start_x, start_y, finish_x, finish_y) {
+            context.beginPath();
+            context.lineWidth = '5';
+            context.moveTo(start_x, start_y);
+            context.lineTo(finish_x, finish_y);
+            context.stroke();
+        }
+
+        $('#btn-treasure').click(function () {
+            $('#treasureModal').modal('show');
+        });
+
+        function SetTreasureChest(entities) {
+            var html = '';
+
+            for (var i = 0; i < entities.length; i++) {
+                if (entities[i].Type == 0) {
+                    html += '<span class="displayTreasure ' + entities[i].Name.toLowerCase() + '">' + entities[i].Value + '&nbsp;&nbsp;' + entities[i].Name + '</span><br>';
+                }
+            }
+            $('#treasure').html(html);
+        }
+
+        function SetThreat(entities) {
+            threat = false
+            $('#btn-threat').css('display', 'none');
+            for (var i = 0; i < entities.length; i++) {
+                if (entities[i].Type == 1) {
+
+                    $('#threatModal').find('.modal-content')
+                        .removeClass('bat-modal')
+                        .removeClass('skeleton-modal')
+                        .removeClass('troll-modal')
+                        .addClass(entities[i].Name.toLowerCase() + '-modal')
+                        .attr('strength', entities[i].Strength);
+                    $('#btn-threat').css('display', 'inline-block');
+                    threat = true;
+                }
+            }
+        }
+
+        function SetPlayerStats(player) {
+            $('.stats').find('.health').html('Health:' + player.Health);
+            $('.stats').find('.gold').html('Gold:' + player.Gold.Value);
+            $('.stats').find('.silver').html('Silver:' + player.Silver.Value);
+            $('.stats').find('.bronze').html('Bronze:' + player.Bronze.Value);
+
+            $('#btn-coin').css('display', 'none');
+            if (player.Gold.Value > 0) {
+                $('#btn-coin').css('display', 'inline-block');
+            }
+        }
+
+        $('#btn-loot').click(function () {
+            var url = '/Play/Loot?x=' + x + '&y=' + y;
+            $('#treasureModal').modal('hide');
+            GetRoomData(url);
+        });
+
+        $('#btn-lure').click(function () {
+            if (!$(this).hasClass('blocked')) {
+                $.ajax({
+                    url: '/Play/Lure?x=' + x + '&y=' + y,
+                    success: function (r) {
+                        if (r == 'True') {
+                            var direction = $('#threatModal').attr('direction');
+                            var url = '/Play/Move?x=' + x + '&y=' + y + '&direction=' + direction;
+                            GetRoomData(url);
+                            $('#threatModal').modal('hide');
+                        }
+                        else {
+                            console.log('Not enough treasure');
+                            $('#btn-lure').addClass('blocked');
+                        }
+                    }
+                });
+            }
+        });
+
+        $('#btn-fight').click(function () {
+            $.ajax({
+                url: '/Play/Fight?x=' + x + '&y=' + y,
+                success: function (r) {
+                    if (r == 'True') {
+                        var direction = $('#threatModal').attr('direction');
+                        var url = '/Play/Move?x=' + x + '&y=' + y + '&direction=' + direction;
+                    }
+                    else {
+                        var url = '/Play/RoomData';
+
+                    }
+                    GetRoomData(url);
+                    $('#threatModal').modal('hide');
+                }
+            });
+        });
+
+        $('#btn-coin').click(function () {
+             $.ajax({
+                url: '/Play/DropCoin?x=' + x + '&y=' + y,
+                success: function (r) {
+                    if (r == 'True') {
+                        var url = '/Play/RoomData';
+                        GetRoomData(url);
+                    }                    
+                }
+            });
+        });
+
+    </script>
+}

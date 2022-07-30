@@ -1,0 +1,178 @@
+﻿@{
+    ViewBag.Title = "Home";
+}
+
+<div class="centerElement">
+    <div class="row">
+        <div class="col">
+            <h1><b>Collapsing Caverns</b></h1>
+        </div>
+    </div>
+    <br />
+    <div class="row row-list">
+        <div class="col" align="center">
+            <button id="btn-play" class="btn shake-slow shake-freeze" type="button">Play!</button>
+        </div>
+    </div>
+    <div class="row row-list">
+        <div class="col" align="center">
+            <button id="btn-how" class="btn shake-slow shake-freeze" type="button">How to Play</button>
+        </div>
+    </div>
+    <div class="row row-list">
+        <div class="col" align="center">
+            <button id="btn-settings" class="btn shake-slow shake-freeze" type="button">Settings</button>
+        </div>
+    </div>
+    <div class="row row-list">
+        <div class="col" align="center">
+            <button id="btn-about" class="btn shake-slow shake-freeze" type="button">About</button>
+        </div>
+    </div>
+</div>
+
+<div id="bgCanvas" style="width:100vw;height:100vh"></div>
+
+<div id="playModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-index display-30">
+            <div class="modal-header">
+                Collapsing Caverns
+            </div>
+            <div class="modal-body display-20">
+                <p>The flicker of torchlight casts long shadows of your surroundings. You awaken lying on the floor, covered in dust, with distant rumblings rolling around from every direction. <p />
+                <p>
+                    As you stand up and gather your thoughts, you realise that the doorway you entered the chamber you currently stood in is completely blocked by boulders of dull rock, interspersed with the glimmer
+                    of an unknown substance. Curiosity gets the better of you and you step forward to investigate, ingnoring the stones that are falling around you and clattering across the floor. Upon closer inspection
+                    the glimmering substance looks almost like glass, looking almost pristine in comparison to the grubby piece of rock its enbedded in. In picking it up you notice its not nearly as heavy as it looks,
+                    and the stone that clings to it crumbles away easily. A quick with your torn jacket removes the last remnants leaving behind a twisted piece of material, the jagged straight lines contrast with the
+                    smooth overall shape, it looks like something that shouldn't exist. You hastily put it in your backpack, along with several other pieces you spot nearby.
+                <p />
+                <p>
+                    As you stand up you suddenly become aware that the rumbling has grown louder and the stones falling around are no longer stones, but large rocks pummeling the floor. You turn round to look at the two remaining exits from the chamber, just as the rumbling
+                    roars with a loud cracking sound and one of the remaining exits collapses sending a cloud of dust and gravel into the air. As the dust settles the chamber is eriely quiet, broken by the clatter of loose stones
+                    settling in the rubble, but even they stop leaving the only the beating of your heart and the pulsing of your blood separating you from absolute silence. The rumbling has stopped now too, and this lack of noise is what brings you back to reality - you need to get out of here, fast.
+                <p />
+                <p>
+                    You leave through the last remaining exit, careful not to disturb anything that could cause another collapse. Stumbling from chamber to chamber you realise the once familiar passageways have become a series of twisting passageways and you have very quickly become lost, and you're further into the network of tunnels than you've ever been. Perhaps
+                    exploring these caverns wasn't such a good idea!
+                <p />
+                <p>
+                    One thing is for certain, you're trapped in this maze and you've got to find your way out as quickly as you can, before the whole place collapses and traps you forever...
+                <p />
+                <div align="center">
+                    <button id="btn-start" class="btn shake-slow shake-freeze dark" type="button">Start!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="howToModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg"    >
+        <div class="modal-content modal-content-index display-30">
+            <div class="modal-header">
+                How to Play
+            </div>
+            <div class="modal-body">
+                @{Html.RenderPartial("_UserGuide"); }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="settingsModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-index display-30">
+            <div class="modal-header display-30">
+                Settings
+            </div>
+            <div class="modal-body display-20">
+                <div class="row">
+                    <div class="col-4">Player Name:</div>
+                    <div class="col"><input id="playerName" type="text" class="form-control" /></div>
+                </div>
+                <div class="row">
+                    <div class="col-4">Maze Size:</div>
+                    <div class="col"><input id="mapSize" type="number" min="3" max="7" class="form-control" /></div>
+                </div>
+                <div class="row">
+                    <div class="col-4">Difficulty:</div>
+                    <div class="col">
+                        <select id="gameDifficulty" class="form-control">
+                            <option value="0">Easy</option>
+                            <option value="1">Medium</option>
+                            <option value="2">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                <div align="center">
+                    <button id="btn-save" class="btn shake-slow shake-freeze dark" type="button">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="aboutModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-index display-30">
+            <div class="modal-header display-30">
+                About
+            </div>
+            <div class="modal-body display-20">
+                <p>This application was created by Andrew Hartnell for the QA Apprenticeship Synoptic Project.</p>
+                <p>It is not intended for commercial use.</p>
+                <p>To the best of ability, the images and resources used in this project should be royalty free, however, this cannot be guaranteed and so they are being used for education purposes only.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+<script>
+
+    VANTA.FOG({
+        el: "#bgCanvas",
+        highlightColor: 0xb355f5,
+        midtoneColor: 0x59014f,
+        lowlightColor: 0x9e9da4,
+        baseColor: 0x0
+    });
+
+    $('#btn-play').click(function () {
+        $('#playModal').modal('show');
+    });
+
+    $('#btn-start').click(function () {
+        window.location = '/Play/Maze';
+    });
+
+    $('#btn-how').click(function () {
+        $('#howToModal').modal('show');
+    });
+
+    $('#btn-about').click(function () {
+        $('#aboutModal').modal('show');
+    });
+
+    $('#btn-settings').click(function () {
+        $('#settingsModal').modal('show');
+    });
+
+    $('#btn-save').click(function () {
+        var name = $('#playerName').val();
+        var size = $('#mapSize').val();
+        var difficulty = $('#gameDifficulty').val();
+
+        $.ajax({
+            url: '/Home/SaveSettings?name=' + name + '&size=' + size + '&difficulty=' + difficulty,
+            success: function (r) {
+                $('#settingsModal').modal('hide');
+            }
+        });
+    });
+        
+</script>
+}
